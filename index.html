@@ -206,6 +206,14 @@
           <label for="filtroBusca">Buscar</label>
           <input id="filtroBusca" type="text" placeholder="Problema, equipamento, colaborador..." />
         </div>
+
+        <div class="field">
+          <label for="numeroExcluir">Excluir registro</label>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input id="numeroExcluir" type="number" min="1" placeholder="Número" />
+            <button type="button" id="btnExcluirRegistro" class="btn btn-danger">Excluir</button>
+          </div>
+        </div>
       </div>
 
       <div class="table-wrapper">
@@ -219,6 +227,7 @@
               <th>Status</th>
               <th>EDT</th>
               <th>Fotos</th>
+              <th>Ação</th>
             </tr>
           </thead>
           <tbody></tbody>
