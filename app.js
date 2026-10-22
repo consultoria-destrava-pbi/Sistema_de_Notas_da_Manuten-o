@@ -12,6 +12,7 @@ let galeriaAtual = [];
 let indiceFotoAtual = 0;
 
 const elementos = {
+  formulario: document.getElementById("formRegistro"),
   numeroRegistro: document.getElementById("numeroRegistro"),
   data: document.getElementById("data"),
   turno: document.getElementById("turno"),
@@ -50,11 +51,11 @@ const elementos = {
   btnFotoProxima: document.getElementById("btnFotoProxima")
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-  inicializarAplicacao();
-});
-
 function inicializarAplicacao() {
+  if (!document.body) {
+    return;
+  }
+
   carregarRegistrosDoStorage();
   configurarEventos();
   popularDataAtual();
@@ -64,36 +65,79 @@ function inicializarAplicacao() {
   limparFormulario();
 }
 
-/**
- * Configura os listeners principais da aplicação.
- * A estrutura foi separada para facilitar manutenção e futuras integrações.
- */
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", inicializarAplicacao);
+} else {
+  inicializarAplicacao();
+}
+
 function configurarEventos() {
+  if (!elementos.btnSalvarRegistro || !elementos.btnLimparFormulario) {
+    console.warn("Elementos principais do formulário não encontrados.");
+    return;
+  }
+
   elementos.btnSalvarRegistro.addEventListener("click", salvarRegistro);
   elementos.btnLimparFormulario.addEventListener("click", limparFormulario);
-  elementos.btnExportarExcel.addEventListener("click", exportarExcel);
-  elementos.btnExportarPDF.addEventListener("click", exportarPDF);
 
-  elementos.fotoInput.addEventListener("change", tratarSelecaoDeFotos);
-  elementos.filtroDataInicial.addEventListener("input", renderizarTabela);
-  elementos.filtroDataFinal.addEventListener("input", renderizarTabela);
-  elementos.filtroTurno.addEventListener("change", renderizarTabela);
-  elementos.filtroEquipamento.addEventListener("input", renderizarTabela);
-  elementos.filtroStatus.addEventListener("change", renderizarTabela);
-  elementos.filtroBusca.addEventListener("input", renderizarTabela);
+  if (elementos.btnExportarExcel) {
+    elementos.btnExportarExcel.addEventListener("click", exportarExcel);
+  }
 
-  elementos.fecharLightbox.addEventListener("click", fecharLightbox);
-  elementos.btnFotoAnterior.addEventListener("click", irParaFotoAnterior);
-  elementos.btnFotoProxima.addEventListener("click", irParaFotoProxima);
+  if (elementos.btnExportarPDF) {
+    elementos.btnExportarPDF.addEventListener("click", exportarPDF);
+  }
 
-  elementos.lightbox.addEventListener("click", (event) => {
-    if (event.target === elementos.lightbox) {
-      fecharLightbox();
-    }
-  });
+  if (elementos.fotoInput) {
+    elementos.fotoInput.addEventListener("change", tratarSelecaoDeFotos);
+  }
+
+  if (elementos.filtroDataInicial) {
+    elementos.filtroDataInicial.addEventListener("input", renderizarTabela);
+  }
+
+  if (elementos.filtroDataFinal) {
+    elementos.filtroDataFinal.addEventListener("input", renderizarTabela);
+  }
+
+  if (elementos.filtroTurno) {
+    elementos.filtroTurno.addEventListener("change", renderizarTabela);
+  }
+
+  if (elementos.filtroEquipamento) {
+    elementos.filtroEquipamento.addEventListener("input", renderizarTabela);
+  }
+
+  if (elementos.filtroStatus) {
+    elementos.filtroStatus.addEventListener("change", renderizarTabela);
+  }
+
+  if (elementos.filtroBusca) {
+    elementos.filtroBusca.addEventListener("input", renderizarTabela);
+  }
+
+  if (elementos.fecharLightbox) {
+    elementos.fecharLightbox.addEventListener("click", fecharLightbox);
+  }
+
+  if (elementos.btnFotoAnterior) {
+    elementos.btnFotoAnterior.addEventListener("click", irParaFotoAnterior);
+  }
+
+  if (elementos.btnFotoProxima) {
+    elementos.btnFotoProxima.addEventListener("click", irParaFotoProxima);
+  }
+
+  if (elementos.lightbox) {
+    elementos.lightbox.addEventListener("click", (event) => {
+      if (event.target === elementos.lightbox) {
+        fecharLightbox();
+      }
+    });
+  }
 
   document.addEventListener("keydown", (event) => {
-    if (elementos.lightbox.classList.contains("hidden")) {
+    if (!elementos.lightbox || elementos.lightbox.classList.contains("hidden")) {
       return;
     }
 
@@ -110,21 +154,19 @@ function configurarEventos() {
     }
   });
 
-  elementos.tabelaHist.addEventListener("click", (event) => {
-    const alvo = event.target;
+  if (elementos.tabelaHist) {
+    elementos.tabelaHist.addEventListener("click", (event) => {
+      const alvo = event.target;
 
-    if (alvo.matches(".foto-mini")) {
-      const registroNumero = Number(alvo.dataset.registro);
-      const indice = Number(alvo.dataset.indice || 0);
-      abrirGaleria(registroNumero, indice);
-    }
-  });
+      if (alvo.matches(".foto-mini")) {
+        const registroNumero = Number(alvo.dataset.registro);
+        const indice = Number(alvo.dataset.indice || 0);
+        abrirGaleria(registroNumero, indice);
+      }
+    });
+  }
 }
 
-/**
- * Carrega registros do localStorage.
- * Caso exista versão antiga do projeto ou dados vazios, a aplicação responde com segurança.
- */
 function carregarRegistrosDoStorage() {
   try {
     const dados = localStorage.getItem(STORAGE_KEY);
@@ -139,30 +181,26 @@ function carregarRegistrosDoStorage() {
   }
 }
 
-/**
- * Salva registros no localStorage.
- * Essa camada pode ser substituída por um adaptador de dados futuramente.
- */
 function persistirRegistros() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(registros));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(registros));
+  } catch (error) {
+    console.error("Erro ao salvar registros em localStorage:", error);
+    alert("Não foi possível salvar localmente. Verifique se o navegador permitiu armazenamento local.");
+  }
 }
 
-/**
- * Preenche a data atual no formulário no formato dd/mm/aaaa.
- */
 function popularDataAtual() {
   const hoje = new Date();
   const dia = String(hoje.getDate()).padStart(2, "0");
   const mes = String(hoje.getMonth() + 1).padStart(2, "0");
   const ano = hoje.getFullYear();
 
-  elementos.data.value = `${dia}/${mes}/${ano}`;
+  if (elementos.data) {
+    elementos.data.value = `${dia}/${mes}/${ano}`;
+  }
 }
 
-/**
- * Retorna o próximo número de registro com base no maior número cadastrado.
- * O formulário exibe o número formatado como 00001, 00002, etc.
- */
 function obterProximoNumeroRegistro() {
   const maiorRegistro = registros.reduce((maior, atual) => {
     const numeroAtual = Number(atual.Registro || 0);
@@ -177,17 +215,15 @@ function formatarNumeroRegistro(numero) {
 }
 
 function atualizarNumeroRegistro() {
+  if (!elementos.numeroRegistro) return;
   elementos.numeroRegistro.textContent = formatarNumeroRegistro(obterProximoNumeroRegistro());
 }
 
-/**
- * Valida campos obrigatórios antes de salvar.
- */
 function validarFormulario() {
   const camposObrigatorios = [
-    { campo: elementos.data.value.trim(), nome: "Data" },
-    { campo: elementos.equipamento.value.trim(), nome: "Equipamento" },
-    { campo: elementos.problema.value.trim(), nome: "Problema" }
+    { campo: elementos.data?.value.trim(), nome: "Data" },
+    { campo: elementos.equipamento?.value.trim(), nome: "Equipamento" },
+    { campo: elementos.problema?.value.trim(), nome: "Problema" }
   ];
 
   const campoVazio = camposObrigatorios.find((item) => !item.campo);
@@ -200,65 +236,60 @@ function validarFormulario() {
   return true;
 }
 
-/**
- * Coleta os valores do formulário em um objeto pronto para armazenamento.
- */
 function obterRegistroDoFormulario() {
-  const novoRegistro = {
+  return {
     Registro: obterProximoNumeroRegistro(),
-    Data: elementos.data.value.trim(),
-    Turno: elementos.turno.value,
-    Periodo: elementos.periodo.value,
-    Colaborador: elementos.colaborador.value.trim(),
-    Equipamento: elementos.equipamento.value.trim(),
-    Local: elementos.local.value.trim(),
-    Problema: elementos.problema.value.trim(),
-    Causa: elementos.causa.value.trim(),
-    Solucao: elementos.solucao.value.trim(),
-    EDT: elementos.edt.value,
-    TempoEDT: elementos.tempoEdt.value || "0",
-    Status: elementos.status.value,
+    Data: elementos.data?.value.trim() || "",
+    Turno: elementos.turno?.value || "A",
+    Periodo: elementos.periodo?.value || "07x13",
+    Colaborador: elementos.colaborador?.value.trim() || "",
+    Equipamento: elementos.equipamento?.value.trim() || "",
+    Local: elementos.local?.value.trim() || "",
+    Problema: elementos.problema?.value.trim() || "",
+    Causa: elementos.causa?.value.trim() || "",
+    Solucao: elementos.solucao?.value.trim() || "",
+    EDT: elementos.edt?.value || DEFAULT_EDT,
+    TempoEDT: elementos.tempoEdt?.value || "0",
+    Status: elementos.status?.value || DEFAULT_STATUS,
     Fotos: [...fotosTemporarias],
     DataHoraCadastro: new Date().toISOString()
   };
-
-  return novoRegistro;
 }
 
-/**
- * Salva o registro atual no state e no localStorage.
- */
 function salvarRegistro() {
   if (!validarFormulario()) {
     return;
   }
 
-  const novoRegistro = obterRegistroDoFormulario();
-  registros.push(novoRegistro);
-  persistirRegistros();
+  try {
+    const novoRegistro = obterRegistroDoFormulario();
+    registros.push(novoRegistro);
+    persistirRegistros();
 
-  renderizarDashboard();
-  renderizarTabela();
-  limparFormulario();
+    renderizarDashboard();
+    renderizarTabela();
+    limparFormulario();
 
-  alert("Registro salvo com sucesso.");
+    console.log("Registro salvo:", novoRegistro);
+    alert("Registro salvo com sucesso.");
+  } catch (error) {
+    console.error("Erro ao salvar registro:", error);
+    alert("Ocorreu um erro ao salvar o registro.");
+  }
 }
 
-/**
- * Limpa os campos e reinicia as fotos temporárias.
- */
 function limparFormulario() {
   const form = document.querySelector("#formRegistro");
   if (form) {
     form.reset();
   }
 
-  elementos.turno.value = "A";
-  elementos.periodo.value = "07x13";
-  elementos.edt.value = "NÃO";
-  elementos.status.value = DEFAULT_STATUS;
-  elementos.tempoEdt.value = "";
-  elementos.fotoInput.value = "";
+  if (elementos.turno) elementos.turno.value = "A";
+  if (elementos.periodo) elementos.periodo.value = "07x13";
+  if (elementos.edt) elementos.edt.value = DEFAULT_EDT;
+  if (elementos.status) elementos.status.value = DEFAULT_STATUS;
+  if (elementos.tempoEdt) elementos.tempoEdt.value = "";
+  if (elementos.fotoInput) elementos.fotoInput.value = "";
 
   fotosTemporarias = [];
   renderizarPreviewDeFotos();
@@ -267,9 +298,6 @@ function limparFormulario() {
   atualizarNumeroRegistro();
 }
 
-/**
- * Lê arquivos de imagem selecionados, converte para dataURL e armazena no array temporário.
- */
 function tratarSelecaoDeFotos(event) {
   const arquivos = Array.from(event.target.files || []);
 
@@ -279,7 +307,7 @@ function tratarSelecaoDeFotos(event) {
     return;
   }
 
-  const promessas = arquivos.map(file => converterArquivoParaDataUrl(file));
+  const promessas = arquivos.map((file) => converterArquivoParaDataUrl(file));
 
   Promise.all(promessas)
     .then((imagens) => {
@@ -292,9 +320,6 @@ function tratarSelecaoDeFotos(event) {
     });
 }
 
-/**
- * Converte arquivo em Base64 para exibir no navegador e persistir no localStorage.
- */
 function converterArquivoParaDataUrl(file) {
   return new Promise((resolve, reject) => {
     const leitor = new FileReader();
@@ -305,10 +330,9 @@ function converterArquivoParaDataUrl(file) {
   });
 }
 
-/**
- * Exibe miniaturas da foto para edição antes do caso ser salvo.
- */
 function renderizarPreviewDeFotos() {
+  if (!elementos.fotoPreviewContainer) return;
+
   elementos.fotoPreviewContainer.innerHTML = "";
 
   if (!fotosTemporarias.length) {
@@ -340,25 +364,20 @@ function renderizarPreviewDeFotos() {
 
     wrapper.appendChild(img);
     wrapper.appendChild(btnRemover);
-
     elementos.fotoPreviewContainer.appendChild(wrapper);
   });
 }
 
-/**
- * Abre a galeria em um modal para as fotos temporárias.
- */
 function abrirGaleriaDeTemporarias(indiceInicial) {
   galeriaAtual = [...fotosTemporarias];
   indiceFotoAtual = indiceInicial;
 
   atualizarLightbox();
-  elementos.lightbox.classList.remove("hidden");
+  if (elementos.lightbox) {
+    elementos.lightbox.classList.remove("hidden");
+  }
 }
 
-/**
- * Atualiza o lightbox com a imagem e os botões de navegação.
- */
 function atualizarLightbox() {
   if (!galeriaAtual.length) {
     fecharLightbox();
@@ -366,23 +385,25 @@ function atualizarLightbox() {
   }
 
   const foto = galeriaAtual[indiceFotoAtual];
-  elementos.lightboxImage.src = foto;
-  elementos.lightboxImage.alt = `Foto ${indiceFotoAtual + 1} de ${galeriaAtual.length}`;
+  if (elementos.lightboxImage) {
+    elementos.lightboxImage.src = foto;
+    elementos.lightboxImage.alt = `Foto ${indiceFotoAtual + 1} de ${galeriaAtual.length}`;
+  }
 }
 
-/**
- * Fecha a modal da galeria.
- */
 function fecharLightbox() {
-  elementos.lightbox.classList.add("hidden");
-  elementos.lightboxImage.src = "";
+  if (elementos.lightbox) {
+    elementos.lightbox.classList.add("hidden");
+  }
+
+  if (elementos.lightboxImage) {
+    elementos.lightboxImage.src = "";
+  }
+
   galeriaAtual = [];
   indiceFotoAtual = 0;
 }
 
-/**
- * Navega para a foto anterior da galeria.
- */
 function irParaFotoAnterior() {
   if (!galeriaAtual.length) {
     return;
@@ -392,9 +413,6 @@ function irParaFotoAnterior() {
   atualizarLightbox();
 }
 
-/**
- * Navega para a próxima foto da galeria.
- */
 function irParaFotoProxima() {
   if (!galeriaAtual.length) {
     return;
@@ -404,9 +422,6 @@ function irParaFotoProxima() {
   atualizarLightbox();
 }
 
-/**
- * Abre uma galeria para um registro salvo.
- */
 function abrirGaleria(registroNumero, indiceInicial) {
   const registro = registros.find((item) => Number(item.Registro) === Number(registroNumero));
 
@@ -418,12 +433,11 @@ function abrirGaleria(registroNumero, indiceInicial) {
   indiceFotoAtual = Number(indiceInicial) || 0;
 
   atualizarLightbox();
-  elementos.lightbox.classList.remove("hidden");
+  if (elementos.lightbox) {
+    elementos.lightbox.classList.remove("hidden");
+  }
 }
 
-/**
- * Atualiza os indicadores do dashboard.
- */
 function renderizarDashboard() {
   const concluidos = registros.filter((item) => item.Status === "Concluído").length;
   const pendentes = registros.filter((item) => item.Status === "Pendente").length;
@@ -433,23 +447,20 @@ function renderizarDashboard() {
     return total + (Number.isNaN(numero) ? 0 : numero);
   }, 0);
 
-  elementos.totalRegistros.textContent = String(registros.length);
-  elementos.totalConcluidos.textContent = String(concluidos);
-  elementos.totalPendentes.textContent = String(pendentes);
-  elementos.totalEdt.textContent = String(comEdt);
-  elementos.tempoTotalEdt.textContent = `${tempoTotal} min`;
+  if (elementos.totalRegistros) elementos.totalRegistros.textContent = String(registros.length);
+  if (elementos.totalConcluidos) elementos.totalConcluidos.textContent = String(concluidos);
+  if (elementos.totalPendentes) elementos.totalPendentes.textContent = String(pendentes);
+  if (elementos.totalEdt) elementos.totalEdt.textContent = String(comEdt);
+  if (elementos.tempoTotalEdt) elementos.tempoTotalEdt.textContent = `${tempoTotal} min`;
 }
 
-/**
- * Retorna os registros filtrados conforme critérios da interface.
- */
 function obterRegistrosFiltrados() {
-  const dataInicial = elementos.filtroDataInicial.value;
-  const dataFinal = elementos.filtroDataFinal.value;
-  const turno = elementos.filtroTurno.value;
-  const equipamento = elementos.filtroEquipamento.value.trim().toLowerCase();
-  const status = elementos.filtroStatus.value;
-  const busca = elementos.filtroBusca.value.trim().toLowerCase();
+  const dataInicial = elementos.filtroDataInicial?.value || "";
+  const dataFinal = elementos.filtroDataFinal?.value || "";
+  const turno = elementos.filtroTurno?.value || "";
+  const equipamento = (elementos.filtroEquipamento?.value || "").trim().toLowerCase();
+  const status = elementos.filtroStatus?.value || "";
+  const busca = (elementos.filtroBusca?.value || "").trim().toLowerCase();
 
   return registros.filter((registro) => {
     const dataRegistro = parseDateBR(registro.Data);
@@ -503,10 +514,9 @@ function obterRegistrosFiltrados() {
   });
 }
 
-/**
- * Renderiza os registros na tabela histórica com filtros aplicados.
- */
 function renderizarTabela() {
+  if (!elementos.tabelaHist) return;
+
   const registrosFiltrados = obterRegistrosFiltrados();
 
   if (!registrosFiltrados.length) {
@@ -539,7 +549,7 @@ function renderizarTabela() {
               />
             `)
             .join("")
-        : '<span class=\"foto-vazia\">Sem foto</span>';
+        : '<span class="foto-vazia">Sem foto</span>';
 
       const excesso = fotos.length > 3 ? `<span class="photo-count">+${fotos.length - 3}</span>` : "";
 
@@ -563,10 +573,6 @@ function renderizarTabela() {
     .join("");
 }
 
-/**
- * Exporta todos os registros para Excel.
- * Inclui campos principais exigidos pelo cliente.
- */
 function exportarExcel() {
   if (!registros.length) {
     alert("Não existem registros para exportar.");
@@ -595,10 +601,6 @@ function exportarExcel() {
   XLSX.writeFile(workbook, "Notas_Manutencao_TEG.xlsx");
 }
 
-/**
- * Exporta o último registro em PDF com layout corporativo.
- * Mantém a funcionalidade original e adiciona melhorias visuais e identificação do documento.
- */
 function exportarPDF() {
   if (!registros.length) {
     alert("Nenhum registro para exportar.");
@@ -719,9 +721,6 @@ function exportarPDF() {
   doc.save(`Nota_${formatarNumeroRegistro(ultimoRegistro.Registro)}_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
-/**
- * Funções auxiliares de conversão de datas.
- */
 function parseDateBR(data) {
   if (!data || typeof data !== "string") {
     return null;
