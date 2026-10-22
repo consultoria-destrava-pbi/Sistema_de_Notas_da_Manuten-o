@@ -1,7 +1,3 @@
-// Sistema de Notas de Manutenção TEG
-// Arquitetura preparada para ser migrada para Firebase, SharePoint ou SQL Server no futuro
-// mantendo compatibilidade com GitHub Pages, sem backend.
-
 const STORAGE_KEY = "tegNotasManutencao";
 const DEFAULT_STATUS = "Concluído";
 const DEFAULT_EDT = "NÃO";
@@ -32,6 +28,8 @@ const elementos = {
   btnLimparFormulario: document.getElementById("btnLimparFormulario"),
   btnExportarExcel: document.getElementById("btnExportarExcel"),
   btnExportarPDF: document.getElementById("btnExportarPDF"),
+  numeroExcluir: document.getElementById("numeroExcluir"),
+  btnExcluirRegistro: document.getElementById("btnExcluirRegistro"),
   filtroDataInicial: document.getElementById("filtroDataInicial"),
   filtroDataFinal: document.getElementById("filtroDataFinal"),
   filtroTurno: document.getElementById("filtroTurno"),
@@ -80,6 +78,13 @@ function configurarEventos() {
 
   if (elementos.btnExportarExcel) elementos.btnExportarExcel.addEventListener("click", exportarExcel);
   if (elementos.btnExportarPDF) elementos.btnExportarPDF.addEventListener("click", exportarPDF);
+  if (elementos.btnExcluirRegistro) elementos.btnExcluirRegistro.addEventListener("click", excluirRegistro);
+
+  if (elementos.numeroExcluir) {
+    elementos.numeroExcluir.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") excluirRegistro();
+    });
+  }
 
   if (elementos.fotoInput) elementos.fotoInput.addEventListener("change", tratarSelecaoDeFotos);
 
@@ -266,6 +271,41 @@ function salvarRegistro() {
     console.error("Erro ao salvar registro:", error);
     alert("Ocorreu um erro ao salvar o registro.");
   }
+}
+
+function excluirRegistro() {
+  const campoNumero = elementos.numeroExcluir;
+  if (!campoNumero) {
+    alert("Campo de exclusão não encontrado.");
+    return;
+  }
+
+  const numero = Number(campoNumero.value);
+  if (!numero) {
+    alert("Informe o número do registro para excluir.");
+    campoNumero.focus();
+    return;
+  }
+
+  const indice = registros.findIndex((registro) => Number(registro.Registro) === numero);
+  if (indice === -1) {
+    alert(`Registro ${formatarNumeroRegistro(numero)} não encontrado.`);
+    return;
+  }
+
+  const registro = registros[indice];
+  const descricao = registro.Equipamento || "sem equipamento";
+  const confirmacao = window.confirm(`Deseja excluir o registro ${formatarNumeroRegistro(numero)} (${descricao})?`);
+  if (!confirmacao) return;
+
+  registros.splice(indice, 1);
+  persistirRegistros();
+  renderizarDashboard();
+  renderizarTabela();
+  campoNumero.value = "";
+  atualizarNumeroRegistro();
+
+  alert(`Registro ${formatarNumeroRegistro(numero)} excluído com sucesso.`);
 }
 
 function limparFormulario() {
