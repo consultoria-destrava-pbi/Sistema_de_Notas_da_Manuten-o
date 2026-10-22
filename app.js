@@ -52,9 +52,7 @@ const elementos = {
 };
 
 function inicializarAplicacao() {
-  if (!document.body) {
-    return;
-  }
+  if (!document.body) return;
 
   carregarRegistrosDoStorage();
   configurarEventos();
@@ -80,53 +78,21 @@ function configurarEventos() {
   elementos.btnSalvarRegistro.addEventListener("click", salvarRegistro);
   elementos.btnLimparFormulario.addEventListener("click", limparFormulario);
 
-  if (elementos.btnExportarExcel) {
-    elementos.btnExportarExcel.addEventListener("click", exportarExcel);
-  }
+  if (elementos.btnExportarExcel) elementos.btnExportarExcel.addEventListener("click", exportarExcel);
+  if (elementos.btnExportarPDF) elementos.btnExportarPDF.addEventListener("click", exportarPDF);
 
-  if (elementos.btnExportarPDF) {
-    elementos.btnExportarPDF.addEventListener("click", exportarPDF);
-  }
+  if (elementos.fotoInput) elementos.fotoInput.addEventListener("change", tratarSelecaoDeFotos);
 
-  if (elementos.fotoInput) {
-    elementos.fotoInput.addEventListener("change", tratarSelecaoDeFotos);
-  }
+  if (elementos.filtroDataInicial) elementos.filtroDataInicial.addEventListener("input", renderizarTabela);
+  if (elementos.filtroDataFinal) elementos.filtroDataFinal.addEventListener("input", renderizarTabela);
+  if (elementos.filtroTurno) elementos.filtroTurno.addEventListener("change", renderizarTabela);
+  if (elementos.filtroEquipamento) elementos.filtroEquipamento.addEventListener("input", renderizarTabela);
+  if (elementos.filtroStatus) elementos.filtroStatus.addEventListener("change", renderizarTabela);
+  if (elementos.filtroBusca) elementos.filtroBusca.addEventListener("input", renderizarTabela);
 
-  if (elementos.filtroDataInicial) {
-    elementos.filtroDataInicial.addEventListener("input", renderizarTabela);
-  }
-
-  if (elementos.filtroDataFinal) {
-    elementos.filtroDataFinal.addEventListener("input", renderizarTabela);
-  }
-
-  if (elementos.filtroTurno) {
-    elementos.filtroTurno.addEventListener("change", renderizarTabela);
-  }
-
-  if (elementos.filtroEquipamento) {
-    elementos.filtroEquipamento.addEventListener("input", renderizarTabela);
-  }
-
-  if (elementos.filtroStatus) {
-    elementos.filtroStatus.addEventListener("change", renderizarTabela);
-  }
-
-  if (elementos.filtroBusca) {
-    elementos.filtroBusca.addEventListener("input", renderizarTabela);
-  }
-
-  if (elementos.fecharLightbox) {
-    elementos.fecharLightbox.addEventListener("click", fecharLightbox);
-  }
-
-  if (elementos.btnFotoAnterior) {
-    elementos.btnFotoAnterior.addEventListener("click", irParaFotoAnterior);
-  }
-
-  if (elementos.btnFotoProxima) {
-    elementos.btnFotoProxima.addEventListener("click", irParaFotoProxima);
-  }
+  if (elementos.fecharLightbox) elementos.fecharLightbox.addEventListener("click", fecharLightbox);
+  if (elementos.btnFotoAnterior) elementos.btnFotoAnterior.addEventListener("click", irParaFotoAnterior);
+  if (elementos.btnFotoProxima) elementos.btnFotoProxima.addEventListener("click", irParaFotoProxima);
 
   if (elementos.lightbox) {
     elementos.lightbox.addEventListener("click", (event) => {
@@ -137,21 +103,11 @@ function configurarEventos() {
   }
 
   document.addEventListener("keydown", (event) => {
-    if (!elementos.lightbox || elementos.lightbox.classList.contains("hidden")) {
-      return;
-    }
+    if (!elementos.lightbox || elementos.lightbox.classList.contains("hidden")) return;
 
-    if (event.key === "Escape") {
-      fecharLightbox();
-    }
-
-    if (event.key === "ArrowRight") {
-      irParaFotoProxima();
-    }
-
-    if (event.key === "ArrowLeft") {
-      irParaFotoAnterior();
-    }
+    if (event.key === "Escape") fecharLightbox();
+    if (event.key === "ArrowRight") irParaFotoProxima();
+    if (event.key === "ArrowLeft") irParaFotoAnterior();
   });
 
   if (elementos.tabelaHist) {
@@ -176,9 +132,7 @@ function carregarRegistrosDoStorage() {
     registros = [];
   }
 
-  if (!Array.isArray(registros)) {
-    registros = [];
-  }
+  if (!Array.isArray(registros)) registros = [];
 }
 
 function persistirRegistros() {
@@ -190,6 +144,44 @@ function persistirRegistros() {
   }
 }
 
+function formatarDataParaInput(data) {
+  if (!data) return "";
+
+  if (data.includes("-")) return data;
+
+  if (data.includes("/")) {
+    const [dia, mes, ano] = data.split("/");
+    if (dia && mes && ano) return `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+  }
+
+  const parsed = new Date(data + "T00:00:00");
+  if (Number.isNaN(parsed.getTime())) return "";
+
+  const ano = parsed.getFullYear();
+  const mes = String(parsed.getMonth() + 1).padStart(2, "0");
+  const dia = String(parsed.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
+
+function formatarDataParaBrasil(data) {
+  if (!data) return "";
+
+  if (data.includes("/")) return data;
+
+  if (data.includes("-")) {
+    const [ano, mes, dia] = data.split("-");
+    if (ano && mes && dia) return `${dia}/${mes}/${ano}`;
+  }
+
+  const parsed = new Date(data + "T00:00:00");
+  if (Number.isNaN(parsed.getTime())) return data;
+
+  const ano = parsed.getFullYear();
+  const mes = String(parsed.getMonth() + 1).padStart(2, "0");
+  const dia = String(parsed.getDate()).padStart(2, "0");
+  return `${dia}/${mes}/${ano}`;
+}
+
 function popularDataAtual() {
   const hoje = new Date();
   const dia = String(hoje.getDate()).padStart(2, "0");
@@ -197,7 +189,7 @@ function popularDataAtual() {
   const ano = hoje.getFullYear();
 
   if (elementos.data) {
-    elementos.data.value = `${dia}/${mes}/${ano}`;
+    elementos.data.value = `${ano}-${mes}-${dia}`;
   }
 }
 
@@ -239,7 +231,7 @@ function validarFormulario() {
 function obterRegistroDoFormulario() {
   return {
     Registro: obterProximoNumeroRegistro(),
-    Data: elementos.data?.value.trim() || "",
+    Data: formatarDataParaBrasil(elementos.data?.value || ""),
     Turno: elementos.turno?.value || "A",
     Periodo: elementos.periodo?.value || "07x13",
     Colaborador: elementos.colaborador?.value.trim() || "",
@@ -257,9 +249,7 @@ function obterRegistroDoFormulario() {
 }
 
 function salvarRegistro() {
-  if (!validarFormulario()) {
-    return;
-  }
+  if (!validarFormulario()) return;
 
   try {
     const novoRegistro = obterRegistroDoFormulario();
@@ -280,9 +270,7 @@ function salvarRegistro() {
 
 function limparFormulario() {
   const form = document.querySelector("#formRegistro");
-  if (form) {
-    form.reset();
-  }
+  if (form) form.reset();
 
   if (elementos.turno) elementos.turno.value = "A";
   if (elementos.periodo) elementos.periodo.value = "07x13";
@@ -335,9 +323,7 @@ function renderizarPreviewDeFotos() {
 
   elementos.fotoPreviewContainer.innerHTML = "";
 
-  if (!fotosTemporarias.length) {
-    return;
-  }
+  if (!fotosTemporarias.length) return;
 
   fotosTemporarias.forEach((foto, indice) => {
     const wrapper = document.createElement("div");
@@ -373,9 +359,7 @@ function abrirGaleriaDeTemporarias(indiceInicial) {
   indiceFotoAtual = indiceInicial;
 
   atualizarLightbox();
-  if (elementos.lightbox) {
-    elementos.lightbox.classList.remove("hidden");
-  }
+  if (elementos.lightbox) elementos.lightbox.classList.remove("hidden");
 }
 
 function atualizarLightbox() {
@@ -392,31 +376,22 @@ function atualizarLightbox() {
 }
 
 function fecharLightbox() {
-  if (elementos.lightbox) {
-    elementos.lightbox.classList.add("hidden");
-  }
-
-  if (elementos.lightboxImage) {
-    elementos.lightboxImage.src = "";
-  }
+  if (elementos.lightbox) elementos.lightbox.classList.add("hidden");
+  if (elementos.lightboxImage) elementos.lightboxImage.src = "";
 
   galeriaAtual = [];
   indiceFotoAtual = 0;
 }
 
 function irParaFotoAnterior() {
-  if (!galeriaAtual.length) {
-    return;
-  }
+  if (!galeriaAtual.length) return;
 
   indiceFotoAtual = (indiceFotoAtual - 1 + galeriaAtual.length) % galeriaAtual.length;
   atualizarLightbox();
 }
 
 function irParaFotoProxima() {
-  if (!galeriaAtual.length) {
-    return;
-  }
+  if (!galeriaAtual.length) return;
 
   indiceFotoAtual = (indiceFotoAtual + 1) % galeriaAtual.length;
   atualizarLightbox();
@@ -425,17 +400,13 @@ function irParaFotoProxima() {
 function abrirGaleria(registroNumero, indiceInicial) {
   const registro = registros.find((item) => Number(item.Registro) === Number(registroNumero));
 
-  if (!registro || !Array.isArray(registro.Fotos) || !registro.Fotos.length) {
-    return;
-  }
+  if (!registro || !Array.isArray(registro.Fotos) || !registro.Fotos.length) return;
 
   galeriaAtual = [...registro.Fotos];
   indiceFotoAtual = Number(indiceInicial) || 0;
 
   atualizarLightbox();
-  if (elementos.lightbox) {
-    elementos.lightbox.classList.remove("hidden");
-  }
+  if (elementos.lightbox) elementos.lightbox.classList.remove("hidden");
 }
 
 function renderizarDashboard() {
@@ -467,29 +438,19 @@ function obterRegistrosFiltrados() {
 
     if (dataInicial) {
       const inicio = parseDateISO(dataInicial);
-      if (dataRegistro && inicio && dataRegistro < inicio) {
-        return false;
-      }
+      if (dataRegistro && inicio && dataRegistro < inicio) return false;
     }
 
     if (dataFinal) {
       const final = parseDateISO(dataFinal);
-      if (dataRegistro && final && dataRegistro > final) {
-        return false;
-      }
+      if (dataRegistro && final && dataRegistro > final) return false;
     }
 
-    if (turno && registro.Turno !== turno) {
-      return false;
-    }
+    if (turno && registro.Turno !== turno) return false;
 
-    if (equipamento && !String(registro.Equipamento || "").toLowerCase().includes(equipamento)) {
-      return false;
-    }
+    if (equipamento && !String(registro.Equipamento || "").toLowerCase().includes(equipamento)) return false;
 
-    if (status && registro.Status !== status) {
-      return false;
-    }
+    if (status && registro.Status !== status) return false;
 
     if (busca) {
       const textoBusca = [
@@ -505,9 +466,7 @@ function obterRegistrosFiltrados() {
         registro.Status
       ].join(" ").toLowerCase();
 
-      if (!textoBusca.includes(busca)) {
-        return false;
-      }
+      if (!textoBusca.includes(busca)) return false;
     }
 
     return true;
@@ -517,7 +476,9 @@ function obterRegistrosFiltrados() {
 function renderizarTabela() {
   if (!elementos.tabelaHist) return;
 
-  const registrosFiltrados = obterRegistrosFiltrados();
+  const registrosFiltrados = [...obterRegistrosFiltrados()].sort(
+    (a, b) => Number(a.Registro || 0) - Number(b.Registro || 0)
+  );
 
   if (!registrosFiltrados.length) {
     elementos.tabelaHist.innerHTML = `
@@ -529,12 +490,9 @@ function renderizarTabela() {
   }
 
   elementos.tabelaHist.innerHTML = registrosFiltrados
-    .slice()
-    .reverse()
     .map((registro) => {
       const fotos = Array.isArray(registro.Fotos) ? registro.Fotos : [];
-      const statusClass =
-        registro.Status === "Concluído" ? "status-concluido" : "status-pendente";
+      const statusClass = registro.Status === "Concluído" ? "status-concluido" : "status-pendente";
 
       const miniaturas = fotos.length
         ? fotos
@@ -675,10 +633,7 @@ function exportarPDF() {
   doc.text("Problema", margem, y);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(0, 0, 0);
-  const problema = doc.splitTextToSize(
-    ultimoRegistro.Problema || "Não informado",
-    larguraPagina - margem * 2 - 180
-  );
+  const problema = doc.splitTextToSize(ultimoRegistro.Problema || "Não informado", larguraPagina - margem * 2 - 180);
   doc.text(problema, margem, y + 18);
 
   y += problema.length * 14 + 28;
@@ -722,27 +677,27 @@ function exportarPDF() {
 }
 
 function parseDateBR(data) {
-  if (!data || typeof data !== "string") {
-    return null;
-  }
+  if (!data || typeof data !== "string") return null;
 
   if (data.includes("/")) {
     const [dia, mes, ano] = data.split("/");
-    if (!dia || !mes || !ano) {
-      return null;
-    }
+    if (!dia || !mes || !ano) return null;
     return new Date(Number(ano), Number(mes) - 1, Number(dia));
   }
 
-  const dataIso = new Date(data + "T00:00:00");
-  return Number.isNaN(dataIso.getTime()) ? null : dataIso;
+  if (data.includes("-")) {
+    const [ano, mes, dia] = data.split("-");
+    if (!ano || !mes || !dia) return null;
+    return new Date(Number(ano), Number(mes) - 1, Number(dia));
+  }
+
+  const parsed = new Date(data + "T00:00:00");
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 function parseDateISO(value) {
-  if (!value) {
-    return null;
-  }
+  if (!value) return null;
 
-  const data = new Date(value + "T00:00:00");
-  return Number.isNaN(data.getTime()) ? null : data;
+  const parsed = new Date(value + "T00:00:00");
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
