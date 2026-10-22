@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Notas de Manutenção TEG</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">TEG</div>
+      <div class="brand-copy">
+        <h1>Sistema de Notas de Manutenção</h1>
+        <p>Terminal Exportador do Guarujá</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="card">
+      <div class="section-title">
+        <h2>Cadastro de nota</h2>
+        <div class="registro-badge">
+          <span>Número</span>
+          <strong id="numeroRegistro">00001</strong>
+        </div>
+      </div>
+
+      <form id="formRegistro">
+        <div class="form-grid">
+          <div class="field">
+            <label for="data">Data</label>
+            <input id="data" type="text" placeholder="dd/mm/aaaa" />
+          </div>
+
+          <div class="field">
+            <label for="turno">Turno</label>
+            <select id="turno">
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="periodo">Período</label>
+            <select id="periodo">
+              <option value="07x13">07x13</option>
+              <option value="13x19">13x19</option>
+              <option value="19x07">19x07</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="colaborador">Colaborador</label>
+            <input id="colaborador" type="text" />
+          </div>
+
+          <div class="field">
+            <label for="equipamento">Equipamento</label>
+            <input id="equipamento" type="text" />
+          </div>
+
+          <div class="field">
+            <label for="local">Local</label>
+            <input id="local" type="text" />
+          </div>
+
+          <div class="field field-large">
+            <label for="problema">Problema</label>
+            <textarea id="problema"></textarea>
+          </div>
+
+          <div class="field field-large">
+            <label for="causa">Causa</label>
+            <textarea id="causa"></textarea>
+          </div>
+
+          <div class="field field-large">
+            <label for="solucao">Solução</label>
+            <textarea id="solucao"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="edt">EDT</label>
+            <select id="edt">
+              <option value="NÃO">NÃO</option>
+              <option value="SIM">SIM</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="tempoEdt">Tempo EDT (min)</label>
+            <input id="tempoEdt" type="number" min="0" step="1" />
+          </div>
+
+          <div class="field">
+            <label for="status">Status</label>
+            <select id="status">
+              <option value="Concluído">Concluído</option>
+              <option value="Pendente">Pendente</option>
+            </select>
+          </div>
+
+          <div class="field field-full">
+            <label for="foto">Fotos</label>
+            <input id="foto" type="file" accept="image/*" multiple />
+            <div id="fotoPreviewContainer" class="foto-preview-container"></div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="btnSalvarRegistro" class="btn btn-primary">Salvar registro</button>
+          <button type="button" id="btnLimparFormulario" class="btn btn-secondary">Limpar</button>
+          <button type="button" id="btnExportarExcel" class="btn btn-alt">Exportar Excel</button>
+          <button type="button" id="btnExportarPDF" class="btn btn-alt-light">Exportar PDF</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="section-title compact">
+        <h2>Dashboard</h2>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card stat-total">
+          <span class="stat-label">Total</span>
+          <strong id="totalRegistros">0</strong>
+        </div>
+
+        <div class="stat-card stat-success">
+          <span class="stat-label">Concluídos</span>
+          <strong id="totalConcluidos">0</strong>
+        </div>
+
+        <div class="stat-card stat-warning">
+          <span class="stat-label">Pendentes</span>
+          <strong id="totalPendentes">0</strong>
+        </div>
+
+        <div class="stat-card stat-edt">
+          <span class="stat-label">EDT</span>
+          <strong id="totalEdt">0</strong>
+        </div>
+
+        <div class="stat-card stat-time">
+          <span class="stat-label">Tempo total EDT</span>
+          <strong id="tempoTotalEdt">0 min</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title compact">
+        <h2>Histórico</h2>
+      </div>
+
+      <div class="filters-grid">
+        <div class="field">
+          <label for="filtroDataInicial">Data inicial</label>
+          <input id="filtroDataInicial" type="date" />
+        </div>
+
+        <div class="field">
+          <label for="filtroDataFinal">Data final</label>
+          <input id="filtroDataFinal" type="date" />
+        </div>
+
+        <div class="field">
+          <label for="filtroTurno">Turno</label>
+          <select id="filtroTurno">
+            <option value="">Todos</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="filtroEquipamento">Equipamento</label>
+          <input id="filtroEquipamento" type="text" />
+        </div>
+
+        <div class="field">
+          <label for="filtroStatus">Status</label>
+          <select id="filtroStatus">
+            <option value="">Todos</option>
+            <option value="Concluído">Concluído</option>
+            <option value="Pendente">Pendente</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="filtroBusca">Buscar</label>
+          <input id="filtroBusca" type="text" placeholder="Problema, equipamento, colaborador..." />
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="tabelaHistorico">
+          <thead>
+            <tr>
+              <th>Registro</th>
+              <th>Data</th>
+              <th>Turno</th>
+              <th>Equipamento</th>
+              <th>Status</th>
+              <th>EDT</th>
+              <th>Fotos</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="lightbox" class="lightbox hidden">
+    <div class="lightbox-content">
+      <button id="fecharLightbox" class="lightbox-close" aria-label="Fechar">×</button>
+      <img id="lightboxImage" src="" alt="Foto em destaque" />
+      <div class="lightbox-nav">
+        <button id="btnFotoAnterior" type="button">Anterior</button>
+        <button id="btnFotoProxima" type="button">Próxima</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
